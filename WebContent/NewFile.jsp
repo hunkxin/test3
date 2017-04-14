@@ -59,8 +59,10 @@ function convertData(data){
 function subsql(){
 	if(confirm("确定要生成数据吗？")){
 		var data = {};
-		var cnt = document.getElementById ("sql").value;
-		data["sql"] = cnt;
+		var tbname = document.getElementById ("tbname").value;
+		data["tbname"] = tbname;
+		var sql = document.getElementById ("sql").value;
+		data["sql"] = sql;
 		var options = {
 			type : 'POST',
 			url:'GenEntity',
@@ -85,7 +87,9 @@ function subsql(){
 <body>
 	<div>
 	<form>
-		<input type="text" id="sql">
+		表名：<input type="text" id="tbname">
+		<br>
+		sql：<input type="text" id="sql" style="width:100%;height:auto;">
 	</form>
 		<button onclick="javascript:subsql()">提交</button>
 	</div>

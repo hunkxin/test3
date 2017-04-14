@@ -37,9 +37,10 @@ public class GenEntity extends HttpServlet {
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		// TODO Auto-generated method stub
 		response.setContentType("text/JavaScript; charset=utf-8");
+		String tbname = request.getParameter("tbname");
 		String sql = request.getParameter("sql");
 		System.out.println(sql);
-		new GenEntityMysql(sql);
+		new GenEntityMysql(tbname,sql);
 	}
 
 }

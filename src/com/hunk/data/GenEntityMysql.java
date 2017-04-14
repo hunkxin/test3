@@ -31,7 +31,6 @@ public class GenEntityMysql {
 	private static void loaddriver(){
 		//System.out.println("-------- MySQL "
         //+ "JDBC Connection Testing ------------");
-
 		try {
 
 			Class.forName("com.mysql.jdbc.Driver");
@@ -43,30 +42,25 @@ public class GenEntityMysql {
 			e.printStackTrace();
 		
 		}
-		
 		//System.out.println("Mysql JDBC Driver Registered!");
 	}
  
 	/*
 	 * 构造函数
 	 */
-	public GenEntityMysql(String sqlcdt){
+	public GenEntityMysql(String tbname,String sqlcdt){
     	//创建连接
-    	Connection con;
+    	Connection con = null;
 		//查要生成实体类的表
     	String sql = "" + sqlcdt;
     	System.out.println(sql);
     	PreparedStatement pStemt = null;
+    	ResultSetMetaData rsmd = null;
     	try {
-    		try {
-				Class.forName(DRIVER);
-			} catch (ClassNotFoundException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
+    		loaddriver();
     		con = DriverManager.getConnection(URL);
 			pStemt = con.prepareStatement(sql);
-			ResultSetMetaData rsmd = pStemt.getMetaData();
+			rsmd = pStemt.getMetaData();
 			int size = rsmd.getColumnCount();	//统计列
 			colnames = new String[size];
 			colTypes = new String[size];
@@ -88,16 +82,16 @@ public class GenEntityMysql {
 			//System.out.println(content);
 			
 			try {
-				File directory = new File("");
+				//File directory = new File("");
 				//System.out.println("绝对路径："+directory.getAbsolutePath());
 				//System.out.println("相对路径："+directory.getCanonicalPath());
-				String path=this.getClass().getResource("").getPath();
-				
-				System.out.println(path);
-				System.out.println("src/?/"+path.substring(path.lastIndexOf("/com/", path.length())) );
+//				String path=this.getClass().getResource("").getPath();
+//				
+//				System.out.println(path);
+//				System.out.println("src/?/"+path.substring(path.lastIndexOf("/com/", path.length())) );
 //				String outputPath = directory.getAbsolutePath()+ "/src/"+path.substring(path.lastIndexOf("/com/", path.length()), path.length()) + initcap(tablename) + ".java";
 				//String outputPath = directory.getAbsolutePath()+ "/src/"+this.packageOutPath.replace(".", "/")+"/"+initcap(tablename) + ".java";
-				String outputPath = "E:/PM/JAVA/workspace/test3"+ "/src/"+this.packageOutPath.replace(".", "/")+"/"+initcap(tablename) + ".java";
+				String outputPath = "E:/PM/JAVA/workspace/test3"+ "/src/"+this.packageOutPath.replace(".", "/")+"/"+initcap(tbname) + ".java";
 				System.out.println(outputPath);
 				FileWriter fw = new FileWriter(outputPath);
 				PrintWriter pw = new PrintWriter(fw);
@@ -112,12 +106,26 @@ public class GenEntityMysql {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		} finally{
-//			try {
-//				con.close();
-//			} catch (SQLException e) {
-//				// TODO Auto-generated catch block
-//				e.printStackTrace();
-//			}
+			if(pStemt!=null)
+			{
+				try {
+					pStemt.close();
+					pStemt = null;
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			if(con!=null)
+			{
+				try {
+					con.close();
+					con = null;
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
 		}
     }
  
