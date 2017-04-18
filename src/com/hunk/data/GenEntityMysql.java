@@ -14,7 +14,7 @@ public class GenEntityMysql {
 	
 	private String packageOutPath = "com.user.entity";//指定实体生成所在包的路径
 	private String authorName = "hunk xin";//作者名字
-	private String tablename = "fs_pbxext";//表名
+	private String tablename = "";//表名
 	private String[] colnames; // 列名数组
 	private String[] colTypes; //列名类型数组
 	private int[] colSizes; //列名大小数组
@@ -56,6 +56,7 @@ public class GenEntityMysql {
     	System.out.println(sql);
     	PreparedStatement pStemt = null;
     	ResultSetMetaData rsmd = null;
+    	this.tablename = tbname;
     	try {
     		loaddriver();
     		con = DriverManager.getConnection(URL);
@@ -158,6 +159,12 @@ public class GenEntityMysql {
 		sb.append("\r\n\r\npublic class " + initcap(tablename) + "{\r\n");
 		processAllAttrs(sb);//属性
 		processAllMethod(sb);//get set方法
+		
+		processselsql(sb);
+		processinssql(sb);
+		processupdsql(sb);
+		processres(sb);
+		
 		sb.append("}\r\n");
 		
     	//System.out.println(sb.toString());
@@ -171,7 +178,8 @@ public class GenEntityMysql {
 	private void processAllAttrs(StringBuffer sb) {
 		
 		for (int i = 0; i < colnames.length; i++) {
-			sb.append("\tprivate " + sqlType2JavaType(colTypes[i]) + " " + colnames[i] + ";\r\n");
+			//sb.append("\tprivate " + sqlType2JavaType(colTypes[i]) + " " + colnames[i] + ";\r\n");
+			sb.append("\tprivate " + "String" + " " + colnames[i] + ";\r\n");
 		}
 		
 	}
@@ -183,15 +191,81 @@ public class GenEntityMysql {
 	private void processAllMethod(StringBuffer sb) {
 		
 		for (int i = 0; i < colnames.length; i++) {
-			sb.append("\tpublic void set" + initcap(colnames[i]) + "(" + sqlType2JavaType(colTypes[i]) + " " + 
+			//sb.append("\tpublic void set" + initcap(colnames[i]) + "(" + sqlType2JavaType(colTypes[i]) + " " + 
+			sb.append("\tpublic void set" + initcap(colnames[i]) + "(" + "String" + " " +
 					colnames[i] + "){\r\n");
-			sb.append("\tthis." + colnames[i] + "=" + colnames[i] + ";\r\n");
+			sb.append("\t\tthis." + colnames[i] + "=" + colnames[i] + ";\r\n");
 			sb.append("\t}\r\n");
-			sb.append("\tpublic " + sqlType2JavaType(colTypes[i]) + " get" + initcap(colnames[i]) + "(){\r\n");
+			//sb.append("\tpublic " + sqlType2JavaType(colTypes[i]) + " get" + initcap(colnames[i]) + "(){\r\n");
+			sb.append("\tpublic " + "String" + " get" + initcap(colnames[i]) + "(){\r\n");
 			sb.append("\t\treturn " + colnames[i] + ";\r\n");
 			sb.append("\t}\r\n");
 		}
 		
+	}
+	
+	private void processselsql(StringBuffer sb){
+		sb.append("\tprivate String selsql = \"select \"\r\n");
+		for (int i = 0; i < colnames.length; i++) {
+			sb.append("\t\t\u002B\"`" + colnames[i] + "`");
+			if(i<colnames.length-1)
+				sb.append(",\"\r\n");
+			else
+				sb.append("\"\r\n");
+		}
+		sb.append("\t\t\u002B\" from `tablename`\";\r\n\r\n");
+	}
+	
+	private void processinssql(StringBuffer sb){
+		sb.append("\tprivate String inssql = \"insert into tablename(\"\r\n");
+		for (int i = 0; i < colnames.length; i++) {
+			sb.append("\t\t\u002B\"`" + colnames[i] + "`");
+			if(i<colnames.length-1)
+				sb.append(",");
+			sb.append("\"\r\n");
+		}
+		sb.append("\t\t\u002B\") values(\"\r\n");
+		for (int i = 0; i < colnames.length; i++) {
+			if(sqlType2JavaType(colTypes[i]).equals("String"))
+				sb.append("\t\t\u002B\"\'\"\u002B"+"content.get" + initcap(colnames[i]) + "()\u002B\"\'");
+			else
+				sb.append("\t\t\u002B"+"content.get" + initcap(colnames[i]) + "()\u002B\"");
+			if(i<colnames.length-1)
+				sb.append(",\"");
+			else
+				sb.append("\"");
+			sb.append("\r\n");
+		}
+		sb.append("\t\t\u002B\")\";\r\n\r\n");
+	}
+	
+	private void processupdsql(StringBuffer sb){
+		sb.append("\tprivate String updsql = \"update tablename set \"\r\n");
+		for (int i = 0; i < colnames.length; i++) {
+			if(sqlType2JavaType(colTypes[i]).equals("String"))
+				sb.append("\t\t\u002B\"`" + colnames[i] + "` =  \'\"\u002Bcontent." + initcap(colnames[i]) + "()\u002B\"\'");
+			else
+				sb.append("\t\t\u002B\"`" + colnames[i] + "` =  \"\u002Bcontent." + initcap(colnames[i]) + "()\u002B\"");
+			if(i<colnames.length-1)
+				sb.append(",\"");
+			else
+				sb.append("\";");
+			sb.append("\r\n");
+		}
+		sb.append("\r\n");
+	}
+	
+	private void processres(StringBuffer sb){
+		sb.append("\tT content = new T(\r\n");
+		for (int i = 0; i < colnames.length; i++) {
+			sb.append("\t\tres.getString(\"" + colnames[i] + "\")");
+			if(i<colnames.length-1)
+				sb.append(",");
+			else
+				sb.append(");");
+			sb.append("\r\n");
+		}
+		sb.append("\r\n");
 	}
 	
 	/**
@@ -244,5 +318,5 @@ public class GenEntityMysql {
 		
 		return null;
 	}
-	 
+	
 }
